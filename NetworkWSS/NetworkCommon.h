@@ -7,6 +7,7 @@ namespace wss
 {
     enum class TCP_TYPE
     {
+        UNKNOWN,
         V4,
         V6
     };

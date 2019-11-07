@@ -14,14 +14,18 @@ namespace wss
     {
     }
 
-    std::shared_ptr<AsyncTCPClient> AsyncTCPClient::Create(const std::string addr, const uint16_t port, TCP_TYPE type, TCPCallback callback)
+    std::shared_ptr<AsyncTCPClient> AsyncTCPClient::Create(const std::string addr, const uint16_t port,
+        ConnectCallback connCallback,
+        TCPCallback readCallback,
+        TCPCallback writeCallback)
     {
         auto client = std::make_shared<AsioAsyncTCPClient>();
 
         client->_addr = addr;
         client->_port = port;
-        client->_tcpType = type;
-        client->_tcpCallback = callback;
+        client->_connCallback = connCallback;
+        client->_readCallback = readCallback;
+        client->_writeCallback = writeCallback;
 
         return client;
     }
