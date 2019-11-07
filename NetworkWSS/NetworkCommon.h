@@ -15,4 +15,7 @@ namespace wss
     using NetPacket = std::shared_ptr<std::vector<uint8_t>>;
     inline NetPacket NewNetPacket() { return std::make_shared<std::vector<uint8_t>>(); }
     inline NetPacket NewNetPacket(size_t size) { return std::make_shared<std::vector<uint8_t>>(size, 0); }
+
+    void InitNetWork();
+    void ShutdownNetWork();
 }

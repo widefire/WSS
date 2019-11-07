@@ -24,12 +24,27 @@
     <ClInclude Include="AsioTCPClient.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="TCPServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AsioTCPServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TCPClient.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="AsioTCPClient.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkCommon.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TCPServer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AsioTCPServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

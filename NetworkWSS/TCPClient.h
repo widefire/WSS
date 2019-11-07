@@ -36,6 +36,9 @@ namespace wss
         return true for begin write
         */
         virtual bool Write(void* ptr, size_t len, size_t timeout = 0) = 0;
+        virtual bool ReadSync(size_t size, NetPacket pkt, size_t timeout = 0) = 0;
+        virtual bool WriteSync(NetPacket pkt, size_t timeout = 0) = 0;
+        virtual bool WriteSync(void* ptr, size_t len, size_t timeout = 0) = 0;
         static std::shared_ptr<TCPClient> Create(const std::string addr, const uint16_t port,
             ConnectCallback connCallback,
             TCPCallback readCallback,

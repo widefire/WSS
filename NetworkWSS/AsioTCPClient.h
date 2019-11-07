@@ -12,20 +12,23 @@
 
 namespace wss
 {
-    //read_some 不一定读完整
-    //read 除非出错，否则读完整
-    asio::io_context& GlobalTCPClientContext();
+
+    asio::io_context& GlobalAsioContext();
     class AsioTCPClient final :public TCPClient
     {
     public:
         AsioTCPClient();
+        AsioTCPClient(asio::ip::tcp::socket socket);
         virtual ~AsioTCPClient();
         virtual bool Connect(size_t timeout = 0) override;
         virtual bool Read(size_t size, NetPacket pkt, size_t timeout = 0) override;
         virtual bool Write(NetPacket pkt, size_t timeout = 0) override;
         virtual bool Write(void* ptr, size_t len, size_t timeout = 0) override;
+        virtual bool ReadSync(size_t size, NetPacket pkt, size_t timeout = 0) override;
+        virtual bool WriteSync(NetPacket pkt, size_t timeout = 0) override;
+        virtual bool WriteSync(void* ptr, size_t len, size_t timeout = 0) override;
     private:
-        bool _stoped = false;
+        bool _stoped = true;
         asio::ip::tcp::resolver::results_type _endpoints;
         asio::ip::tcp::socket   _socket;
         asio::steady_timer _readDeadline;//and for connect
@@ -37,7 +40,10 @@ namespace wss
         void Stop();
         void StartConnect(asio::ip::tcp::resolver::results_type::iterator endpointIter);
         void HandleConnect(const std::error_code& error,asio::ip::tcp::resolver::results_type::iterator endpointIter);
+        void UpdateReadDeadline(const size_t timeout);
+        void UpdateWriteDeadline(const size_t timeout);
         void CheckReadDeadline();
+        void CheckWriteDeadline();
         void NotifyConnectStatus(bool succeed);
     };
 }
