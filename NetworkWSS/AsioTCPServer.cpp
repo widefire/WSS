@@ -24,7 +24,25 @@ namespace wss
         }
 
         std::error_code ec;
-        tcp::endpoint listen_endpoint(tcp::v4(), _port);
+
+        tcp::endpoint listen_endpoint;
+
+        switch (_type)
+        {
+        case wss::TCP_TYPE::UNKNOWN:
+            return false;
+            break;
+        case wss::TCP_TYPE::V4:
+            listen_endpoint = tcp::endpoint(tcp::v4(), _port);
+            break;
+        case wss::TCP_TYPE::V6:
+            listen_endpoint = tcp::endpoint(tcp::v6(), _port);
+            break;
+        default:
+            return false;
+            break;
+        }
+
         _acceptor.open(listen_endpoint.protocol(), ec);
         if (ec)
         {
