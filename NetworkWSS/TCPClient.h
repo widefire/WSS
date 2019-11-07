@@ -9,11 +9,11 @@ namespace wss
 {
     using ConnectCallback = std::function<void(const std::error_code& error)>;
     using TCPCallback = std::function<void(const std::error_code& error, std::size_t n)>;
-    class AsyncTCPClient
+    class TCPClient
     {
     public:
-        AsyncTCPClient();
-        virtual ~AsyncTCPClient();
+        TCPClient();
+        virtual ~TCPClient();
         /*!
         \param timeout millseconds,if timeout <= 0,no time out
         return true for begin connect
@@ -36,7 +36,7 @@ namespace wss
         return true for begin write
         */
         virtual bool Write(void* ptr, size_t len, size_t timeout = 0) = 0;
-        static std::shared_ptr<AsyncTCPClient> Create(const std::string addr, const uint16_t port,
+        static std::shared_ptr<TCPClient> Create(const std::string addr, const uint16_t port,
             ConnectCallback connCallback,
             TCPCallback readCallback,
             TCPCallback writeCallback);

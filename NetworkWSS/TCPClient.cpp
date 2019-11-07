@@ -1,25 +1,25 @@
-#include "AsyncTCPClient.h"
+#include "TCPClient.h"
 
-#include "AsioAsyncTCPClient.h"
+#include "AsioTCPClient.h"
 
 namespace wss
 {
 
-    AsyncTCPClient::AsyncTCPClient()
+    TCPClient::TCPClient()
     {
     }
 
 
-    AsyncTCPClient::~AsyncTCPClient()
+    TCPClient::~TCPClient()
     {
     }
 
-    std::shared_ptr<AsyncTCPClient> AsyncTCPClient::Create(const std::string addr, const uint16_t port,
+    std::shared_ptr<TCPClient> TCPClient::Create(const std::string addr, const uint16_t port,
         ConnectCallback connCallback,
         TCPCallback readCallback,
         TCPCallback writeCallback)
     {
-        auto client = std::make_shared<AsioAsyncTCPClient>();
+        auto client = std::make_shared<AsioTCPClient>();
 
         client->_addr = addr;
         client->_port = port;
@@ -30,17 +30,17 @@ namespace wss
         return client;
     }
 
-    std::string AsyncTCPClient::RemoteAddr()
+    std::string TCPClient::RemoteAddr()
     {
         return _addr;
     }
 
-    uint16_t AsyncTCPClient::ReomtePort()
+    uint16_t TCPClient::ReomtePort()
     {
         return _port;
     }
 
-    TCP_TYPE AsyncTCPClient::TcpType()
+    TCP_TYPE TCPClient::TcpType()
     {
         return _tcpType;
     }

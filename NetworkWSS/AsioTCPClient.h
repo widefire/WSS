@@ -8,18 +8,18 @@
 #include <asio/steady_timer.hpp>
 #include <asio/write.hpp>
 
-#include "AsyncTCPClient.h"
+#include "TCPClient.h"
 
 namespace wss
 {
     //read_some 不一定读完整
     //read 除非出错，否则读完整
     asio::io_context& GlobalTCPClientContext();
-    class AsioAsyncTCPClient final :public AsyncTCPClient
+    class AsioTCPClient final :public TCPClient
     {
     public:
-        AsioAsyncTCPClient();
-        virtual ~AsioAsyncTCPClient();
+        AsioTCPClient();
+        virtual ~AsioTCPClient();
         virtual bool Connect(size_t timeout = 0) override;
         virtual bool Read(size_t size, NetPacket pkt, size_t timeout = 0) override;
         virtual bool Write(NetPacket pkt, size_t timeout = 0) override;

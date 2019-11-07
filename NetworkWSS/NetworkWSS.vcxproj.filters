@@ -15,21 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AsioAsyncTCPClient.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="AsyncTCPClient.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="NetworkCommon.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TCPClient.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AsioTCPClient.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AsioAsyncTCPClient.cpp">
+    <ClCompile Include="TCPClient.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="AsyncTCPClient.cpp">
+    <ClCompile Include="AsioTCPClient.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

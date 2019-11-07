@@ -1,10 +1,10 @@
-#include "AsioAsyncTCPClient.h"
+#include "AsioTCPClient.h"
 
 using asio::ip::tcp;
 namespace wss
 {
 
-    AsioAsyncTCPClient::AsioAsyncTCPClient()
+    AsioTCPClient::AsioTCPClient()
         :
         _socket(GlobalTCPClientContext())
         ,_readDeadline(GlobalTCPClientContext())
@@ -13,11 +13,11 @@ namespace wss
     }
 
 
-    AsioAsyncTCPClient::~AsioAsyncTCPClient()
+    AsioTCPClient::~AsioTCPClient()
     {
     }
 
-    bool AsioAsyncTCPClient::Connect(size_t timeout)
+    bool AsioTCPClient::Connect(size_t timeout)
     {
         _readTimeout = timeout;
         tcp::resolver r(GlobalTCPClientContext());
@@ -43,12 +43,12 @@ namespace wss
         _notifyedConnectStatus = false;
         StartConnect(_endpoints.begin());
 
-        _readDeadline.async_wait(std::bind(&AsioAsyncTCPClient::CheckReadDeadline, this));
+        _readDeadline.async_wait(std::bind(&AsioTCPClient::CheckReadDeadline, this));
 
         return true;
     }
 
-    bool AsioAsyncTCPClient::Read(size_t size, NetPacket pkt, size_t timeout)
+    bool AsioTCPClient::Read(size_t size, NetPacket pkt, size_t timeout)
     {
         if (_stoped)
         {
@@ -96,17 +96,17 @@ namespace wss
         return true;
     }
 
-    bool AsioAsyncTCPClient::Write(NetPacket pkt, size_t timeout)
+    bool AsioTCPClient::Write(NetPacket pkt, size_t timeout)
     {
         return false;
     }
 
-    bool AsioAsyncTCPClient::Write(void * ptr, size_t len, size_t timeout)
+    bool AsioTCPClient::Write(void * ptr, size_t len, size_t timeout)
     {
         return false;
     }
 
-    void AsioAsyncTCPClient::Stop()
+    void AsioTCPClient::Stop()
     {
         _stoped = true;
         std::error_code ec;
@@ -115,7 +115,7 @@ namespace wss
         _writeDeadline.cancel();
     }
 
-    void AsioAsyncTCPClient::StartConnect(tcp::resolver::results_type::iterator endpointIter)
+    void AsioTCPClient::StartConnect(tcp::resolver::results_type::iterator endpointIter)
     {
         if (endpointIter!=_endpoints.end())
         {
@@ -128,7 +128,7 @@ namespace wss
                 _readDeadline.expires_after(std::chrono::milliseconds(_readTimeout));
             }
             _socket.async_connect(endpointIter->endpoint(),
-                std::bind(&AsioAsyncTCPClient::HandleConnect, this, std::placeholders::_1, endpointIter));
+                std::bind(&AsioTCPClient::HandleConnect, this, std::placeholders::_1, endpointIter));
         }
         else
         {
@@ -137,7 +137,7 @@ namespace wss
         }
     }
 
-    void AsioAsyncTCPClient::HandleConnect(const std::error_code & error, tcp::resolver::results_type::iterator endpointIter)
+    void AsioTCPClient::HandleConnect(const std::error_code & error, tcp::resolver::results_type::iterator endpointIter)
     {
         if (_stoped)
         {
@@ -161,7 +161,7 @@ namespace wss
         }
     }
 
-    void AsioAsyncTCPClient::CheckReadDeadline()
+    void AsioTCPClient::CheckReadDeadline()
     {
         if (_stoped)
         {
@@ -174,10 +174,10 @@ namespace wss
             _socket.close(ec);
             _readDeadline.expires_at(asio::steady_timer::time_point::max());
         }
-        _readDeadline.async_wait(std::bind(&AsioAsyncTCPClient::CheckReadDeadline, this));
+        _readDeadline.async_wait(std::bind(&AsioTCPClient::CheckReadDeadline, this));
     }
 
-    void AsioAsyncTCPClient::NotifyConnectStatus(bool succeed)
+    void AsioTCPClient::NotifyConnectStatus(bool succeed)
     {
         if (!_notifyedConnectStatus)
         {
