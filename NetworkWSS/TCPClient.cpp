@@ -30,6 +30,21 @@ namespace wss
         return client;
     }
 
+    void TCPClient::SetConnectCallback(ConnectCallback callback)
+    {
+        _connCallback = callback;
+    }
+
+    void TCPClient::SetReadCallback(TCPCallback callback)
+    {
+        _readCallback = callback;
+    }
+
+    void TCPClient::SetWriteCallback(TCPCallback callback)
+    {
+        _writeCallback = callback;
+    }
+
     std::string TCPClient::RemoteAddr()
     {
         return _addr;

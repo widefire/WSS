@@ -43,6 +43,12 @@ namespace wss
             ConnectCallback connCallback,
             TCPCallback readCallback,
             TCPCallback writeCallback);
+        /*
+        connect succeed or failed or closed 
+        */
+        void SetConnectCallback(ConnectCallback callback);
+        void SetReadCallback(TCPCallback callback);
+        void SetWriteCallback(TCPCallback callback);
         
         std::string RemoteAddr();
         uint16_t ReomtePort();

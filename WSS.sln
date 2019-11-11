@@ -8,6 +8,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetworkWSS", "NetworkWSS\NetworkWSS.vcxproj", "{C4016C1C-24E9-4987-9CC6-6FF2EC8B2622}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetworkTest", "NetworkTest\NetworkTest.vcxproj", "{05194704-E9A2-4F5F-AD86-C55F096C8CFF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C4016C1C-24E9-4987-9CC6-6FF2EC8B2622} = {C4016C1C-24E9-4987-9CC6-6FF2EC8B2622}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

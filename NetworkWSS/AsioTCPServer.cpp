@@ -43,16 +43,8 @@ namespace wss
             break;
         }
 
-        _acceptor.open(listen_endpoint.protocol(), ec);
-        if (ec)
-        {
-            return false;
-        }
-        _acceptor.bind(listen_endpoint, ec);
-        if (ec)
-        {
-            return false;
-        }
+        auto endpoint = asio::ip::tcp::endpoint(asio::ip::tcp::v4(), _port);
+        _acceptor = asio::ip::tcp::acceptor(GlobalAsioContext(), endpoint);
 
         _stoped = false;
 
@@ -84,6 +76,8 @@ namespace wss
                 if (!error)
                 {
                     auto client = std::make_shared<AsioTCPClient>(std::move(socket));
+                    client->SetReadCallback(_defaultReadCallback);
+                    client->SetWriteCallback(_defaultWriteCallback);
                     _callback(client);
                 }
                 if (!_stoped)

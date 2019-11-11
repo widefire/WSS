@@ -1,4 +1,5 @@
 #include "AsioTCPClient.h"
+#include <iostream>
 
 using asio::ip::tcp;
 namespace wss
@@ -17,12 +18,26 @@ namespace wss
         _socket(std::move(socket))
         , _readDeadline(GlobalAsioContext())
         , _writeDeadline(GlobalAsioContext())
+        , _stoped(false)
     {
     }
 
 
     AsioTCPClient::~AsioTCPClient()
     {
+        asio::error_code ec;
+        _stoped = true;
+        if (_socket.is_open())
+        {
+            _socket.close();
+        }
+
+        if (_connCallback != nullptr)
+        {
+            _connCallback(std::make_error_code(std::errc::connection_aborted));
+        }
+        _readDeadline.cancel(ec);
+        _writeDeadline.cancel(ec);
     }
 
     bool AsioTCPClient::Connect(size_t timeout)
@@ -41,17 +56,6 @@ namespace wss
         if (ec)
         {
             return false;
-        }
-
-        asio::ip::address addr;
-        addr = addr.from_string(_addr);
-        if (addr.is_v4())
-        {
-            _tcpType = TCP_TYPE::V4;
-        }
-        else if (addr.is_v6())
-        {
-            _tcpType = TCP_TYPE::V6;
         }
 
         _notifyedConnectStatus = false;
@@ -105,7 +109,7 @@ namespace wss
 
     bool AsioTCPClient::Write(NetPacket pkt, size_t timeout)
     {
-        if (_stoped||pkt==nullptr)
+        /*if (_stoped||pkt==nullptr)
         {
             return false;
         }
@@ -136,6 +140,10 @@ namespace wss
             });
 
         return true;
+            */
+
+        return Write(static_cast<void*>(pkt->data()), pkt->size(), timeout);
+
     }
 
     bool AsioTCPClient::Write(void * ptr, size_t len, size_t timeout)
@@ -160,7 +168,6 @@ namespace wss
                     return;
                 }
                 _writeDeadline.expires_at(asio::steady_timer::time_point::max());
-                _writeCallback(error, bytes_transferred);
                 if (!error)
                 {
                 }
@@ -208,34 +215,7 @@ namespace wss
 
     bool AsioTCPClient::WriteSync(NetPacket pkt, size_t timeout)
     {
-        if (_stoped||pkt==nullptr)
-        {
-            return false;
-        }
-
-        if (pkt->size()==0)
-        {
-            return true;
-        }
-
-        UpdateWriteDeadline(timeout);
-
-        std::error_code ec;
-
-        size_t writed = 0;
-        while (writed<pkt->size())
-        {
-            auto ret = asio::write(_socket, asio::buffer(pkt->data()+ writed, pkt->size()-writed), ec);
-            if (ec)
-            {
-                UpdateWriteDeadline(0);
-                Stop();
-                return false;
-            }
-            writed += ret;
-        }
-        UpdateWriteDeadline(0);
-        return true;
+        return WriteSync(pkt->data(), pkt->size(), timeout);
     }
 
     bool AsioTCPClient::WriteSync(void * ptr, size_t len, size_t timeout)
@@ -284,6 +264,7 @@ namespace wss
         if (endpointIter!=_endpoints.end())
         {
             UpdateReadDeadline(_readTimeout);
+            UpdateWriteDeadline(0);
             _socket.async_connect(endpointIter->endpoint(),
                 std::bind(&AsioTCPClient::HandleConnect, this, std::placeholders::_1, endpointIter));
         }
@@ -313,6 +294,19 @@ namespace wss
         }
         else
         {
+            
+            if (endpointIter->endpoint().address().is_v4())
+            {
+                _tcpType = TCP_TYPE::V4;
+            }
+            else if (endpointIter->endpoint().address().is_v6())
+            {
+                _tcpType = TCP_TYPE::V6;
+            }
+            else
+            {
+                _tcpType = TCP_TYPE::UNKNOWN;
+            }
             NotifyConnectStatus(true);
             _readDeadline.expires_at(asio::steady_timer::time_point::max());
         }
@@ -352,6 +346,8 @@ namespace wss
             return;
         }
 
+        auto expiry = _readDeadline.expiry();
+        auto now = asio::steady_timer::clock_type::now();
         if (_readDeadline.expiry()<=asio::steady_timer::clock_type::now())
         {
             asio::error_code ec;
@@ -367,6 +363,8 @@ namespace wss
         {
             return;
         }
+        auto expiry = _writeDeadline.expiry();
+        auto now = asio::steady_timer::clock_type::now();
         if (_writeDeadline.expiry()<=asio::steady_timer::clock_type::now())
         {
             asio::error_code ec;
