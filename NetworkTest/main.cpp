@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <TCPServer.h>
+#include <vector>
 
 #define fileline __FILE__<<":"<<__LINE__<<"\t"
 
@@ -10,12 +11,15 @@ int main(int argc, char **argv)
 
     const uint16_t port = 7080;
 
-    auto server = wss::TCPServer::Create(wss::TCP_TYPE::V4, port, [](std::shared_ptr<wss::TCPClient> client)
+    std::vector<std::shared_ptr<wss::TCPClient>> accepted;
+    auto server = wss::TCPServer::Create(wss::TCP_TYPE::V4, port, [&](std::shared_ptr<wss::TCPClient> client)
         {
+            //accepted.push_back(client);
+            //auto ptr = client->Ptr();
             std::cout << fileline << "accept client" << std::endl;
             client->SetConnectCallback([](const std::error_code &ec)
                 {
-                    std::cout << fileline << "connect closed";
+                    std::cout << fileline << "connect closed :"<<ec.message() << std::endl;
                 });
             std::string helloStr = "welcome connect";
             if (!client->Write(const_cast<char*>(helloStr.c_str()), helloStr.size()))
@@ -48,8 +52,10 @@ int main(int argc, char **argv)
     auto ret = server->Start();
 
     {
-        auto client = wss::TCPClient::Create("localhost", port,
-            [](const std::error_code& errorCode)
+        wss::NetPacket pkt = wss::NewNetPacket();
+        std::shared_ptr<wss::TCPClient> client;
+        client = wss::TCPClient::Create("localhost", port,
+            [&](const std::error_code& errorCode)
             {
                 if (errorCode)
                 {
@@ -58,12 +64,17 @@ int main(int argc, char **argv)
                 else
                 {
                     std::cout << fileline << "connect ok" << std::endl;
+                    client->Read(100, pkt);
                 }
             },
-            [](const std::error_code& errorCode, std::size_t n)
+            [&](const std::error_code& errorCode, std::size_t n)
             {
                 if (errorCode)
                 {
+                    if (n>0)
+                    {
+                        std::cout << pkt->data() << std::endl;
+                    }
                     std::cout << fileline << "read error:" << errorCode.message() << std::endl;
                 }
                 else
@@ -99,7 +110,11 @@ int main(int argc, char **argv)
             }
         }
     }
-
+        
+    for (auto &it:accepted)
+    {
+        it = nullptr;
+    }
         while (true)
         {
             std::string line;

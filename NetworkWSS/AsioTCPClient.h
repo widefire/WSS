@@ -20,6 +20,8 @@ namespace wss
         AsioTCPClient();
         AsioTCPClient(asio::ip::tcp::socket socket);
         virtual ~AsioTCPClient();
+        virtual bool CanFree() override;
+        virtual bool Stop(std::error_code& ec) override;
         virtual bool Connect(size_t timeout = 0) override;
         virtual bool Read(size_t size, NetPacket pkt, size_t timeout = 0) override;
         virtual bool Write(NetPacket pkt, size_t timeout = 0) override;
@@ -36,8 +38,11 @@ namespace wss
         size_t _readTimeout = 0;
         size_t _writeTimeout = 0;
         bool _notifyedConnectStatus = false;
+        std::condition_variable _conAsyncCount;
+        std::mutex _mutexAsyncCount;
+        volatile int32_t     _asyncCount = 0;
+
     private:
-        void Stop();
         void StartConnect(asio::ip::tcp::resolver::results_type::iterator endpointIter);
         void HandleConnect(const std::error_code& error,asio::ip::tcp::resolver::results_type::iterator endpointIter);
         void UpdateReadDeadline(const size_t timeout);
@@ -45,6 +50,9 @@ namespace wss
         void CheckReadDeadline();
         void CheckWriteDeadline();
         void NotifyConnectStatus(bool succeed);
+        void DecreaseAsyncCount();
+        void IncreaseAsyncCount();
+        void AsyncWrite(std::shared_ptr<TCPClient> client, const asio::error_code& error, std::size_t bytes_transferred);
     };
 }
 

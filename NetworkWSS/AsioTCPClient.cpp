@@ -25,19 +25,49 @@ namespace wss
 
     AsioTCPClient::~AsioTCPClient()
     {
-        asio::error_code ec;
-        _stoped = true;
-        if (_socket.is_open())
-        {
-            _socket.close();
-        }
-
-        if (_connCallback != nullptr)
+        std::error_code ec;
+        Stop(ec);
+        if (nullptr != _connCallback)
         {
             _connCallback(std::make_error_code(std::errc::connection_aborted));
         }
-        _readDeadline.cancel(ec);
-        _writeDeadline.cancel(ec);
+
+        
+        std::lock_guard<std::mutex> guard(_mutexAsyncCount);
+        if (0 != _asyncCount)
+        {
+            std::cout << __FILE__ << " " << __LINE__ << ":destory before all async callback end,dangerous";
+        }
+        //std::unique_lock<std::mutex> lk(_mutexAsyncCount);
+        //_conAsyncCount.wait(lk, [&]() {return _asyncReadCount == 0; });
+    }
+
+    bool AsioTCPClient::CanFree()
+    {
+
+        std::lock_guard<std::mutex> guard(_mutexAsyncCount);
+        return _asyncCount == 0;
+    }
+
+    bool AsioTCPClient::Stop(std::error_code & ec)
+    {
+        if (_stoped)
+        {
+            return true;
+        }
+        _stoped = true;
+        //std::error_code ec;
+
+        _socket.cancel(ec);
+        _socket.shutdown(asio::ip::tcp::socket::shutdown_both);
+        _socket.close(ec);
+        _readDeadline.cancel();
+        _writeDeadline.cancel();
+        if (ec)
+        {
+            return false;
+        }
+        return true;
     }
 
     bool AsioTCPClient::Connect(size_t timeout)
@@ -86,22 +116,24 @@ namespace wss
 
         UpdateReadDeadline(timeout);
 
+        IncreaseAsyncCount();
         asio::async_read(_socket, asio::buffer(pkt->data(), pkt->size()), 
             [&](const std::error_code& error, std::size_t n)
             {
-                if (_stoped)
-                {
-                    return;
-                }
                 _readDeadline.expires_at(asio::steady_timer::time_point::max());
                 _readCallback(error, n);
-                if (!error)
+
+                if (_stoped)
                 {
+                    DecreaseAsyncCount();
+                    return;
                 }
-                else
+                if (error)
                 {
-                    Stop();
+                    std::error_code ec;
+                    Stop(ec);
                 }
+                DecreaseAsyncCount();
             });
 
         return true;
@@ -109,39 +141,6 @@ namespace wss
 
     bool AsioTCPClient::Write(NetPacket pkt, size_t timeout)
     {
-        /*if (_stoped||pkt==nullptr)
-        {
-            return false;
-        }
-
-        if (pkt->size()==0)
-        {
-            return true;
-        }
-
-        UpdateWriteDeadline(timeout);
-
-        asio::async_write(_socket, asio::buffer(pkt->data(), pkt->size()),
-            [&](const asio::error_code& error, std::size_t bytes_transferred)
-            {
-                if (_stoped)
-                {
-                    return;
-                }
-                _writeDeadline.expires_at(asio::steady_timer::time_point::max());
-                _writeCallback(error, bytes_transferred);
-                if (!error)
-                {
-                }
-                else
-                {
-                    Stop();
-                }
-            });
-
-        return true;
-            */
-
         return Write(static_cast<void*>(pkt->data()), pkt->size(), timeout);
 
     }
@@ -159,23 +158,31 @@ namespace wss
         }
 
         UpdateWriteDeadline(timeout);
+        IncreaseAsyncCount();
 
-        asio::async_write(_socket, asio::buffer(ptr, len),
+
+        /*asio::async_write(_socket, asio::buffer(ptr, len),
             [&](const asio::error_code& error, std::size_t bytes_transferred)
             {
+                _writeDeadline.expires_at(asio::steady_timer::time_point::max());
+                _writeCallback(error, bytes_transferred);
                 if (_stoped)
                 {
+                    DecreaseAsyncCount();
                     return;
                 }
-                _writeDeadline.expires_at(asio::steady_timer::time_point::max());
-                if (!error)
+                if (error)
                 {
+                    std::error_code ec;
+                    Stop(ec);
                 }
-                else
-                {
-                    Stop();
-                }
-            });
+                DecreaseAsyncCount();
+            });*/
+
+        asio::async_write(_socket, 
+            asio::buffer(ptr, len),
+            std::bind(&AsioTCPClient::AsyncWrite, this, Ptr(),
+            std::placeholders::_1, std::placeholders::_2));
 
         return true;
     }
@@ -203,7 +210,7 @@ namespace wss
             if (ec)
             {
                 UpdateReadDeadline(0);
-                Stop();
+                Stop(ec);
                 return false;
             }
             readed += ret;
@@ -241,7 +248,7 @@ namespace wss
             if (ec)
             {
                 UpdateWriteDeadline(0);
-                Stop();
+                Stop(ec);
                 return false;
             }
             writed += ret;
@@ -250,14 +257,6 @@ namespace wss
         return true;
     }
 
-    void AsioTCPClient::Stop()
-    {
-        _stoped = true;
-        std::error_code ec;
-        _socket.close(ec);
-        _readDeadline.cancel();
-        _writeDeadline.cancel();
-    }
 
     void AsioTCPClient::StartConnect(tcp::resolver::results_type::iterator endpointIter)
     {
@@ -265,12 +264,14 @@ namespace wss
         {
             UpdateReadDeadline(_readTimeout);
             UpdateWriteDeadline(0);
+            IncreaseAsyncCount();
             _socket.async_connect(endpointIter->endpoint(),
                 std::bind(&AsioTCPClient::HandleConnect, this, std::placeholders::_1, endpointIter));
         }
         else
         {
-            Stop();
+            std::error_code ec;
+            Stop(ec);
             NotifyConnectStatus(false);
         }
     }
@@ -280,6 +281,7 @@ namespace wss
         if (_stoped)
         {
             NotifyConnectStatus(false);
+            DecreaseAsyncCount();
             return;
         }
 
@@ -310,6 +312,7 @@ namespace wss
             NotifyConnectStatus(true);
             _readDeadline.expires_at(asio::steady_timer::time_point::max());
         }
+        DecreaseAsyncCount();
     }
 
     void AsioTCPClient::UpdateReadDeadline(const size_t timeout)
@@ -389,6 +392,39 @@ namespace wss
                 _connCallback(std::make_error_code(std::errc::connection_aborted));
             }
         }
+    }
+
+    void AsioTCPClient::DecreaseAsyncCount()
+    {
+        std::lock_guard<std::mutex> guard(_mutexAsyncCount);
+        _asyncCount--;
+        if (_asyncCount==0)
+        {
+            _conAsyncCount.notify_one();
+        }
+    }
+
+    void AsioTCPClient::IncreaseAsyncCount()
+    {
+        std::lock_guard<std::mutex> guard(_mutexAsyncCount);
+        _asyncCount++;
+    }
+
+    void AsioTCPClient::AsyncWrite(std::shared_ptr<TCPClient> client, const asio::error_code & error, std::size_t bytes_transferred)
+    {
+        _writeDeadline.expires_at(asio::steady_timer::time_point::max());
+        _writeCallback(error, bytes_transferred);
+        if (_stoped)
+        {
+            DecreaseAsyncCount();
+            return;
+        }
+        if (error)
+        {
+            std::error_code ec;
+            Stop(ec);
+        }
+        DecreaseAsyncCount();
     }
 
 

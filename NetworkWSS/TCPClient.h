@@ -9,11 +9,14 @@ namespace wss
 {
     using ConnectCallback = std::function<void(const std::error_code& error)>;
     using TCPCallback = std::function<void(const std::error_code& error, std::size_t n)>;
-    class TCPClient
+    class TCPClient:public std::enable_shared_from_this<TCPClient>
     {
     public:
         TCPClient();
         virtual ~TCPClient();
+        //必须所有的回调都完成才能释放TCP client 的内存空间
+        virtual bool CanFree() = 0;
+        virtual bool Stop(std::error_code& ec) = 0;
         /*!
         \param timeout millseconds,if timeout <= 0,no time out
         return true for begin connect
@@ -50,6 +53,7 @@ namespace wss
         void SetReadCallback(TCPCallback callback);
         void SetWriteCallback(TCPCallback callback);
         
+        std::shared_ptr<TCPClient> Ptr();
         std::string RemoteAddr();
         uint16_t ReomtePort();
         TCP_TYPE TcpType();

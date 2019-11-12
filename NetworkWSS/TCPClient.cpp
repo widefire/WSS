@@ -45,6 +45,11 @@ namespace wss
         _writeCallback = callback;
     }
 
+    std::shared_ptr<TCPClient> TCPClient::Ptr()
+    {
+        return shared_from_this();
+    }
+
     std::string TCPClient::RemoteAddr()
     {
         return _addr;
