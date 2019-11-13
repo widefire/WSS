@@ -14,17 +14,13 @@ namespace wss
     }
 
     std::shared_ptr<TCPServer> TCPServer::Create(
-        TCP_TYPE type, uint16_t port,
-        AcceptCallback callback,
-        TCPCallback defaultReadCallback,
-        TCPCallback defaultWriteCallback)
+        IP_ADDRESS_TYPE type, uint16_t port,
+        AcceptCallback callback)
     {
         auto server = std::make_shared<AsioTCPServer>();
 
         server->_port = port;
         server->_callback = callback;
-        server->_defaultReadCallback = defaultReadCallback;
-        server->_defaultWriteCallback = defaultWriteCallback;
         server->_type = type;
 
 

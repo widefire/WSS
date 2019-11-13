@@ -11,18 +11,14 @@ namespace wss
         TCPServer();
         virtual ~TCPServer();
         static std::shared_ptr<TCPServer> Create(
-            TCP_TYPE type,uint16_t port, 
-            AcceptCallback callback,
-            TCPCallback defaultReadCallback,
-            TCPCallback defaultWriteCallback);
+            IP_ADDRESS_TYPE type,uint16_t port, 
+            AcceptCallback callback);
         virtual bool Start() = 0;
         virtual bool Stop() = 0;
     protected:
         uint16_t _port = 0;
         AcceptCallback _callback = nullptr;
-        TCPCallback _defaultReadCallback = nullptr;
-        TCPCallback _defaultWriteCallback = nullptr;
-        TCP_TYPE _type = TCP_TYPE::UNKNOWN;
+        IP_ADDRESS_TYPE _type = IP_ADDRESS_TYPE::UNKNOWN;
     };
 
 

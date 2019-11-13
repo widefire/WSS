@@ -5,7 +5,7 @@
 
 namespace wss
 {
-    enum class TCP_TYPE
+    enum class IP_ADDRESS_TYPE
     {
         UNKNOWN,
         V4,

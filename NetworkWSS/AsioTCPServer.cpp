@@ -29,13 +29,13 @@ namespace wss
 
         switch (_type)
         {
-        case wss::TCP_TYPE::UNKNOWN:
+        case wss::IP_ADDRESS_TYPE::UNKNOWN:
             return false;
             break;
-        case wss::TCP_TYPE::V4:
+        case wss::IP_ADDRESS_TYPE::V4:
             listen_endpoint = tcp::endpoint(tcp::v4(), _port);
             break;
-        case wss::TCP_TYPE::V6:
+        case wss::IP_ADDRESS_TYPE::V6:
             listen_endpoint = tcp::endpoint(tcp::v6(), _port);
             break;
         default:
@@ -76,8 +76,6 @@ namespace wss
                 if (!error)
                 {
                     auto client = std::make_shared<AsioTCPClient>(std::move(socket));
-                    client->SetReadCallback(_defaultReadCallback);
-                    client->SetWriteCallback(_defaultWriteCallback);
                     _callback(client);
                 }
                 if (!_stoped)

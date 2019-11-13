@@ -30,6 +30,18 @@
     <ClInclude Include="AsioTCPServer.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="UDPClient.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="UDPServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AsioUDPClient.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AsioUDPServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TCPClient.cpp">
@@ -45,6 +57,18 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="AsioTCPServer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="UDPClient.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="UDPServer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AsioUDPClient.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AsioUDPServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

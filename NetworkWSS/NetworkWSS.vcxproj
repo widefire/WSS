@@ -21,16 +21,24 @@
   <ItemGroup>
     <ClInclude Include="AsioTCPClient.h" />
     <ClInclude Include="AsioTCPServer.h" />
+    <ClInclude Include="AsioUDPClient.h" />
+    <ClInclude Include="AsioUDPServer.h" />
     <ClInclude Include="TCPClient.h" />
     <ClInclude Include="NetworkCommon.h" />
     <ClInclude Include="TCPServer.h" />
+    <ClInclude Include="UDPClient.h" />
+    <ClInclude Include="UDPServer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AsioTCPClient.cpp" />
     <ClCompile Include="AsioTCPServer.cpp" />
+    <ClCompile Include="AsioUDPClient.cpp" />
+    <ClCompile Include="AsioUDPServer.cpp" />
     <ClCompile Include="NetworkCommon.cpp" />
     <ClCompile Include="TCPClient.cpp" />
     <ClCompile Include="TCPServer.cpp" />
+    <ClCompile Include="UDPClient.cpp" />
+    <ClCompile Include="UDPServer.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
