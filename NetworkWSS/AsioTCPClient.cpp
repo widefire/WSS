@@ -29,6 +29,12 @@ namespace wss
         Stop(ec);
     }
 
+    void AsioTCPClient::Init()
+    {
+        _readDeadline.async_wait(std::bind(&AsioTCPClient::CheckReadDeadline, shared_from_this()));
+        _writeDeadline.async_wait(std::bind(&AsioTCPClient::CheckWriteDeadline, shared_from_this()));
+    }
+
 
     bool AsioTCPClient::Stop(std::error_code & ec)
     {
@@ -72,8 +78,6 @@ namespace wss
         _notifyedConnectStatus = false;
         StartConnect(callback, _endpoints.begin());
 
-        _readDeadline.async_wait(std::bind(&AsioTCPClient::CheckReadDeadline, this));
-        _writeDeadline.async_wait(std::bind(&AsioTCPClient::CheckWriteDeadline, this));
 
         return true;
     }
@@ -291,39 +295,41 @@ namespace wss
 
     }
 
-    void AsioTCPClient::CheckReadDeadline()
+    void AsioTCPClient::CheckReadDeadline(std::shared_ptr<TCPClient> ptr)
     {
-        if (_stoped)
+        auto client = std::dynamic_pointer_cast<AsioTCPClient>(ptr);
+        if (client->_stoped)
         {
             return;
         }
 
-        auto expiry = _readDeadline.expiry();
+        auto expiry = client->_readDeadline.expiry();
         auto now = asio::steady_timer::clock_type::now();
-        if (_readDeadline.expiry()<=asio::steady_timer::clock_type::now())
+        if (client->_readDeadline.expiry()<=asio::steady_timer::clock_type::now())
         {
             asio::error_code ec;
-            _socket.close(ec);
-            _readDeadline.expires_at(asio::steady_timer::time_point::max());
+            client->_socket.close(ec);
+            client->_readDeadline.expires_at(asio::steady_timer::time_point::max());
         }
-        _readDeadline.async_wait(std::bind(&AsioTCPClient::CheckReadDeadline, this));
+        client->_readDeadline.async_wait(std::bind(&AsioTCPClient::CheckReadDeadline, ptr));
     }
 
-    void AsioTCPClient::CheckWriteDeadline()
+    void AsioTCPClient::CheckWriteDeadline(std::shared_ptr<TCPClient> ptr)
     {
-        if (_stoped)
+        auto client = std::dynamic_pointer_cast<AsioTCPClient>(ptr);
+        if (client->_stoped)
         {
             return;
         }
-        auto expiry = _writeDeadline.expiry();
+        auto expiry = client->_writeDeadline.expiry();
         auto now = asio::steady_timer::clock_type::now();
-        if (_writeDeadline.expiry()<=asio::steady_timer::clock_type::now())
+        if (client->_writeDeadline.expiry()<=asio::steady_timer::clock_type::now())
         {
             asio::error_code ec;
-            _socket.close(ec);
-            _writeDeadline.expires_at(asio::steady_timer::time_point::max());
+            client->_socket.close(ec);
+            client->_writeDeadline.expires_at(asio::steady_timer::time_point::max());
         }
-        _writeDeadline.async_wait(std::bind(&AsioTCPClient::CheckWriteDeadline, this));
+        client->_writeDeadline.async_wait(std::bind(&AsioTCPClient::CheckWriteDeadline, ptr));
     }
 
     void AsioTCPClient::NotifyConnectStatus(ConnectCallback callback, bool succeed)

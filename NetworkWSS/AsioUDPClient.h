@@ -9,6 +9,7 @@ namespace wss
     {
     public:
         asio::ip::udp::endpoint remoteEndpoint;
+        virtual std::string Dump() override;
     };
 
     class AsioUDPClient :

@@ -14,9 +14,14 @@ namespace wss
     {
     }
 
-    std::shared_ptr<UDPServer> UDPServer::Create(IP_ADDRESS_TYPE type, uint16_t port)
+    std::shared_ptr<UDPServer> UDPServer::Create(IP_ADDRESS_TYPE type, uint16_t port, std::exception& ec)
     {
         auto server = std::make_shared<AsioUDPServer>(type,port);
+
+        if (!server->Init(ec))
+        {
+            return nullptr;
+        }
 
         return server;
     }

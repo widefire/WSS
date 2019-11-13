@@ -21,9 +21,11 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TestTCP.cpp" />
+    <ClCompile Include="TestUDP.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestTCP.h" />
+    <ClInclude Include="TestUDP.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

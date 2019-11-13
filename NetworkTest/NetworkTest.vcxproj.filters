@@ -21,9 +21,15 @@
     <ClCompile Include="TestTCP.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="TestUDP.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestTCP.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TestUDP.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

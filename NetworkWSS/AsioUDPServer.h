@@ -12,8 +12,10 @@ namespace wss
     public:
         AsioUDPServer(IP_ADDRESS_TYPE type, uint16_t port);
         ~AsioUDPServer();
+        bool Init(std::exception& ec);
         virtual bool Receive(NetPacket pkt, UDPReceiveCallback callback, size_t timeout = 0) override;
         virtual bool Send(NetPacket pkt, std::shared_ptr<UDPAddr> addr, UDPSendCallback callback) override;
+        virtual bool Send(void* data, size_t len, std::shared_ptr<UDPAddr> addr, UDPSendCallback callback)override;
         virtual bool ReceiveSync(NetPacket pkt, std::shared_ptr<UDPAddr>& addr, size_t& sizeReceived,size_t timeout = 0) override;
         virtual bool SendSync(NetPacket pkt, std::shared_ptr<UDPAddr> addr, size_t& sizeSended) override;
     private:
@@ -35,7 +37,7 @@ namespace wss
             std::size_t bytes_transferred
         );
 
-        void CheckReadDeadline();
+        static void CheckReadDeadline(std::shared_ptr<UDPServer> ptr);
     };
 
 }

@@ -6,10 +6,9 @@ namespace wss
 
     AsioUDPServer::AsioUDPServer(IP_ADDRESS_TYPE type, uint16_t port)
         :UDPServer(type,port),
-        _socket(GlobalAsioContext(), asio::ip::udp::endpoint(asio::ip::udp::v4(),port))
+        _socket(GlobalAsioContext())
         ,_readDeadline(GlobalAsioContext())
     {
-        _readDeadline.async_wait(std::bind(&AsioUDPServer::CheckReadDeadline, this));
     }
 
 
@@ -17,6 +16,22 @@ namespace wss
     {
         _readDeadline.cancel();
         _socket.close();
+    }
+
+    bool AsioUDPServer::Init(std::exception& ec)
+    {
+        try
+        {
+            _socket = asio::ip::udp::socket(GlobalAsioContext(), asio::ip::udp::endpoint(asio::ip::udp::v4(), _port));
+
+            _readDeadline.async_wait(std::bind(&AsioUDPServer::CheckReadDeadline, shared_from_this()));
+        }
+        catch (const std::exception& ecc)
+        {
+            ec = ecc;
+            return false;
+        }
+        return true;
     }
 
     bool AsioUDPServer::Receive(NetPacket pkt, UDPReceiveCallback callback, size_t timeout)
@@ -79,6 +94,11 @@ namespace wss
 
     bool AsioUDPServer::Send(NetPacket pkt, std::shared_ptr<UDPAddr> addr, UDPSendCallback callback)
     {
+        return Send((void*)pkt->data(), pkt->size(), addr, callback);
+    }
+
+    bool AsioUDPServer::Send(void * data, size_t len, std::shared_ptr<UDPAddr> addr, UDPSendCallback callback)
+    {
         if (!_socket.is_open())
         {
             return false;
@@ -91,7 +111,7 @@ namespace wss
         }
 
         _socket.async_send_to(
-            asio::buffer(pkt->data(), pkt->size()),
+            asio::buffer(data, len),
             asioAddr->remoteEndpoint,
             std::bind(
                 &AsioUDPServer::HandleSend,
@@ -139,15 +159,16 @@ namespace wss
         callback(addr, error, bytes_transferred);
     }
 
-    void AsioUDPServer::CheckReadDeadline()
+    void AsioUDPServer::CheckReadDeadline(std::shared_ptr<UDPServer> ptr)
     {
-        if (_readDeadline.expiry() <= asio::steady_timer::clock_type::now())
+        auto client = std::dynamic_pointer_cast<AsioUDPServer>(ptr);
+        if (client->_readDeadline.expiry() <= asio::steady_timer::clock_type::now())
         {
             asio::error_code ec;
-            _socket.cancel(ec);
-            _readDeadline.expires_at(asio::steady_timer::time_point::max());
+            client->_socket.cancel(ec);
+            client->_readDeadline.expires_at(asio::steady_timer::time_point::max());
         }
-        _readDeadline.async_wait(std::bind(&AsioUDPServer::CheckReadDeadline, this));
+        client->_readDeadline.async_wait(std::bind(&AsioUDPServer::CheckReadDeadline, ptr));
     }
 
 }

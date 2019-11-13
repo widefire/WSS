@@ -131,5 +131,9 @@ namespace wss
         }
         _readDeadline.async_wait(std::bind(&AsioUDPClient::CheckReadDeadline, this));
     }
+    std::string AsioUDPAddr::Dump()
+    {
+        return std::string(remoteEndpoint.address().to_string() +":"+ std::to_string(remoteEndpoint.port()));
+    }
 }
 

@@ -11,6 +11,7 @@ namespace wss
     public:
         UDPAddr() = default;
         virtual ~UDPAddr() = default;
+        virtual std::string Dump() = 0;
     };
 
     using UDPCallback = std::function<void(const std::error_code& error, std::size_t bytes_transferred)>;

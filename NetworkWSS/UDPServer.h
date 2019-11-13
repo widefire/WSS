@@ -24,8 +24,9 @@ namespace wss
     public:
         UDPServer(IP_ADDRESS_TYPE type, uint16_t port);
         virtual ~UDPServer();
-        static std::shared_ptr<UDPServer> Create(IP_ADDRESS_TYPE type, uint16_t port);
+        static std::shared_ptr<UDPServer> Create(IP_ADDRESS_TYPE type, uint16_t port,std::exception& ec);
         virtual bool Send(NetPacket pkt, std::shared_ptr<UDPAddr> addr, UDPSendCallback callback) = 0;
+        virtual bool Send(void* data, size_t len, std::shared_ptr<UDPAddr> addr, UDPSendCallback callback) = 0;
         virtual bool Receive(NetPacket pkt, UDPReceiveCallback callback, size_t timeout = 0) = 0;
         virtual bool SendSync(NetPacket pkt, std::shared_ptr<UDPAddr> addr, size_t& sizeSended) = 0;
         virtual bool ReceiveSync(NetPacket pkt, std::shared_ptr<UDPAddr>& addr, size_t& sizeReceived, size_t timeout = 0) = 0;

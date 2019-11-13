@@ -45,21 +45,18 @@ void TestTCP()
 
     auto ret = server->Start();
 
-    try
-    {
-        asio::io_context ctx;
-        
-        asio::ip::udp::socket udp(ctx, asio::ip::udp::endpoint(asio::ip::udp::v4(), port));
-        auto isOpen = udp.is_open();
-        char buf[100];
-        auto received = udp.receive(asio::buffer(buf, 100));
-        int a = 32;
-        a++;
-    }
-    catch (std::exception ec)
-    {
-        std::cout << ec.what();
-    }
+    
+        auto server2 = wss::TCPServer::Create(wss::IP_ADDRESS_TYPE::V4, port, [&](std::shared_ptr<wss::TCPClient> client)
+            {
+                accepted.push_back(client);
+                std::cout << fileline << "accept client" << std::endl;
+                WriteTest(client);
+            });
+
+        auto ret2 = server2->Start();
+    
+        server = nullptr;
+    
 
     {
         wss::NetPacket pkt = wss::NewNetPacket();
