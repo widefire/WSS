@@ -20,7 +20,10 @@ namespace wss
     )
     {
         auto client = std::make_shared<AsioUDPClient>(type, remoteAddr, remotePort);
-
+        if (!client->Init())
+        {
+            return nullptr;
+        }
         return client;
     }
 }

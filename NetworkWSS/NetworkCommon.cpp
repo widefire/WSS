@@ -11,6 +11,7 @@ namespace wss
     }
     asio::io_context::work worker(GlobalAsioContext());
     std::thread workerThread;
+
     void InitNetWork()
     {
         workerThread = std::thread([&]() {GlobalAsioContext().run(); });

@@ -20,7 +20,6 @@ namespace wss
         {
             _socket.open(asio::ip::udp::v6(), ec);
         }
-        _readDeadline.async_wait(std::bind(&AsioUDPClient::CheckReadDeadline, this));
 
         asio::ip::udp::resolver resolver(GlobalAsioContext());
         _remoteEndPoint = *resolver.resolve(asio::ip::udp::v4(), _remoteAddr,std::to_string(_remotePort)).begin();
@@ -32,6 +31,12 @@ namespace wss
     {
         _socket.close();
         _readDeadline.cancel();
+    }
+
+    bool AsioUDPClient::Init()
+    {
+        _readDeadline.async_wait(std::bind(&AsioUDPClient::CheckReadDeadline, this, shared_from_this()));
+        return true;
     }
 
     bool AsioUDPClient::Read(size_t size, NetPacket pkt, UDPCallback callback, size_t timeout)
@@ -121,7 +126,7 @@ namespace wss
         
         callback(error, bytes_transferred);
     }
-    void AsioUDPClient::CheckReadDeadline()
+    void AsioUDPClient::CheckReadDeadline(std::shared_ptr<UDPClient> ptr)
     {
         if (_readDeadline.expiry() <= asio::steady_timer::clock_type::now())
         {
@@ -129,7 +134,7 @@ namespace wss
             _socket.cancel(ec);
             _readDeadline.expires_at(asio::steady_timer::time_point::max());
         }
-        _readDeadline.async_wait(std::bind(&AsioUDPClient::CheckReadDeadline, this));
+        _readDeadline.async_wait(std::bind(&AsioUDPClient::CheckReadDeadline, this,shared_from_this()));
     }
     std::string AsioUDPAddr::Dump()
     {

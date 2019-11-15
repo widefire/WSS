@@ -1,4 +1,6 @@
-#include "TestTCP.h"
+#define _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING 1
+#include <gtest/gtest.h>
+
 #include <iostream>
 
 #include <TCPServer.h>
@@ -8,6 +10,10 @@
 
 #define fileline __FILE__<<":"<<__LINE__<<"\t"
 
+bool connected = false;
+bool svraccepted = false;
+bool svrWrited = false;
+bool cliReceived = false;
 
 std::vector<std::shared_ptr<wss::TCPClient>> accepted;
 void WriteTest(std::shared_ptr<wss::TCPClient> client)
@@ -23,6 +29,7 @@ void WriteTest(std::shared_ptr<wss::TCPClient> client)
             else
             {
                 std::cout << fileline << " write succeed" << std::endl;
+                svrWrited = true;
                 WriteTest(accepted[0]);
             }
         }
@@ -45,18 +52,19 @@ void TestTCP()
 
     auto ret = server->Start();
 
-    
-        auto server2 = wss::TCPServer::Create(wss::IP_ADDRESS_TYPE::V4, port, [&](std::shared_ptr<wss::TCPClient> client)
-            {
-                accepted.push_back(client);
-                std::cout << fileline << "accept client" << std::endl;
-                WriteTest(client);
-            });
 
-        auto ret2 = server2->Start();
-    
-        server = nullptr;
-    
+    auto server2 = wss::TCPServer::Create(wss::IP_ADDRESS_TYPE::V4, port, [&](std::shared_ptr<wss::TCPClient> client)
+        {
+            accepted.push_back(client);
+            std::cout << fileline << "accept client" << std::endl;
+            svraccepted = true;
+            WriteTest(client);
+        });
+
+    auto ret2 = server2->Start();
+
+    server = nullptr;
+
 
     {
         wss::NetPacket pkt = wss::NewNetPacket();
@@ -71,7 +79,9 @@ void TestTCP()
                 }
                 else
                 {
+                    connected = true;
                     std::cout << fileline << "connect succeed" << std::endl;
+                    
                     client->Read(100, pkt, [&](const std::error_code& errorCode, std::size_t n)
                         {
                             if (errorCode)
@@ -84,6 +94,8 @@ void TestTCP()
                             }
                             else
                             {
+
+                                cliReceived = true;
                                 std::cout << fileline << "read ok" << std::endl;
                             }
                         });
@@ -94,28 +106,23 @@ void TestTCP()
             std::cout << fileline << "connect error" << std::endl;
         }
 
-        while (true)
-        {
-            std::string line;
-            std::getline(std::cin, line);
-            if (line.compare("q") == 0)
-            {
-                break;
-            }
-        }
+            std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 
-    for (auto &it : accepted)
+}
+
+class TCPTest : public testing::Test {
+protected:
+};
+
+TEST(TCPTest, tcp_base_test)
+{
+    if (false)
     {
-        it = nullptr;
-    }
-    while (true)
-    {
-        std::string line;
-        std::getline(std::cin, line);
-        if (line.compare("q") == 0)
-        {
-            break;
-        }
+        TestTCP();
+        ASSERT_TRUE(connected);
+        ASSERT_TRUE(svraccepted);
+        ASSERT_TRUE(svrWrited);
+        ASSERT_TRUE(cliReceived);
     }
 }

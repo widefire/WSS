@@ -18,6 +18,7 @@ namespace wss
     public:
         AsioUDPClient(IP_ADDRESS_TYPE type, std::string remoteAddr, uint16_t remotePort);
         ~AsioUDPClient();
+        bool Init();
         virtual bool Read(size_t size, NetPacket pkt, UDPCallback callback, size_t timeout = 0)override;
         virtual bool ReadSync(size_t size, NetPacket pkt, size_t& transferred, size_t timeout = 0)override;
         virtual bool Write(NetPacket pkt, UDPCallback callback)override;
@@ -32,7 +33,7 @@ namespace wss
     private:
         static void HandleRead(std::shared_ptr<UDPClient> ptr, UDPCallback callback, const asio::error_code& error, std::size_t bytes_transferred);
         static void HandleWrite(std::shared_ptr<UDPClient> ptr, UDPCallback callback, const asio::error_code& error, std::size_t bytes_transferred);
-        void CheckReadDeadline();
+        void CheckReadDeadline(std::shared_ptr<UDPClient> ptr);
     };
 
 

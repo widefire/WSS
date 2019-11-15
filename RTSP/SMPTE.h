@@ -13,6 +13,7 @@ namespace wss
     public:
         SMPTE();
         ~SMPTE();
+        bool HasDrop();
     };
 
 
